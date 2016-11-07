@@ -17,7 +17,7 @@ from .plotting import *
 from .funcutil import *
 from .decorator import *
 from ._libstat import integrate1d
-from .functor import Normalized, Extended, Convolve, AddPdf, AddPdfNorm, BlindFunc
+from .functor import Normalized, Extended, Convolve, AddPdf, AddPdfNorm, BlindFunc, ProdPdf
 from .info import __version__
 
 __all__ = [
@@ -29,6 +29,7 @@ __all__ = [
     'Chi2Regression',
     'Convolve',
     'Extended',
+    'ProdPdf',
     'Normalized',
     'Polynomial',
     'HistogramPdf',

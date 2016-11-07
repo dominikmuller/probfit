@@ -27,7 +27,27 @@ cpdef tuple construct_arg(tuple arg, np.ndarray[np.int_t] fpos):
         PyTuple_SetItem(ret, i, tmpo)
     return ret
 
+cpdef tuple construct_arg_data(tuple arg, np.ndarray[np.int_t] fpos,
+                               np.int_t n_func):
+    cdef int size = fpos.shape[0]
+    cdef int i, itmp
+    cdef np.int_t* fposdata = <np.int_t*>fpos.data
+    cdef tuple ret = PyTuple_New(size)
+    cdef object tmpo
+    for i in range(size):
+        itmp = fposdata[i]
+        tmpo = <object>PyTuple_GetItem(arg, itmp)
+        if i == 0:
+            tmpo = tmpo[n_func]
+        Py_INCREF(tmpo)
+        #Py_INCREF(tmpo) #first one for the case second one for the steal
+        PyTuple_SetItem(ret, i, tmpo)
+    return ret
+
 #TODO: optimize this may be check id() instead of actual comparison?
+#TODO: according to https://docs.python.org/2/library/functions.html#id
+#TODO: it returns the pointer to the object in cython. Don't think that
+#TODO: works here.
 cpdef bint fast_tuple_equal(tuple t1, tuple t2 , int t2_offset) except *:
     #t=last_arg
     #t2=arg
@@ -39,7 +59,7 @@ cpdef bint fast_tuple_equal(tuple t1, tuple t2 , int t2_offset) except *:
     if len(t1) ==0 and tsize==0:
         return 1
 
-    for i in range(tsize):
+    for i in range(0, tsize):
         ind = i+t2_offset
         tmp1 = PyFloat_AsDouble(<object>PyTuple_GetItem(t1,i))
         tmp2 =  PyFloat_AsDouble(<object>PyTuple_GetItem(t2,ind))
@@ -319,23 +339,28 @@ cdef class AddPdf:
             thispos = self.allpos[i]
             this_arg = construct_arg(arg, thispos)
 
-            if self.argcache[i] is not None and fast_tuple_equal(this_arg, self.argcache[i], 0):
-                tmp = self.cache[i]
-                self.hit+=1
-            else:
-                tmp = self.allf[i](*this_arg)
-                self.argcache[i]=this_arg
-                self.cache[i]=tmp
+            # Removed arg caching for AddPdf. In the most common use case,
+            # these are sums of the main contributions which are probably
+            # cached themselves. Anyway, isn't the data different everytime
+            # this is called?
+
+            # if self.argcache[i] is not None and fast_tuple_equal(this_arg, self.argcache[i], 0):
+                # tmp = self.cache[i]
+                # self.hit+=1
+            # else:
+            tmp = self.allf[i](*this_arg)
+                # self.argcache[i]=this_arg
+                # self.cache[i]=tmp
 
             if self.factors is not None: # calculate factor
                 factor_arg = construct_arg(arg, self.factpos[i])
-                if self.factor_argcache[i] is not None and fast_tuple_equal(factor_arg, self.factor_argcache[i], 0):
-                    tmp_factor = self.factor_cache[i]
-                    self.hit+=1
-                else:
-                    tmp_factor = self.factors[i](*factor_arg)
-                    self.factor_argcache[i] = factor_arg
-                    self.factor_cache[i] = tmp_factor
+                # if self.factor_argcache[i] is not None and fast_tuple_equal(factor_arg, self.factor_argcache[i], 0):
+                    # tmp_factor = self.factor_cache[i]
+                    # self.hit+=1
+                # else:
+                tmp_factor = self.factors[i](*factor_arg)
+                    # self.factor_argcache[i] = factor_arg
+                    # self.factor_cache[i] = tmp_factor
 
                 ret += tmp_factor*tmp
             else:
@@ -767,3 +792,136 @@ cdef class BlindFunc:
     def integrate(self, tuple bound, int nint, *arg):
         cdef tuple newarg = self.__shift_arg__(arg)
         return integrate1d(self.f, bound, nint, newarg)
+
+
+cdef class ProdPdf:
+    """
+    Take the product of two PDFs to build simple, multidimensional PDFs
+    where the different dimensions factorise. The independent variable x,
+    given by the first argument, is transformed into an array.
+
+    ::
+
+        def f(x, a, b, c):
+            return do_something(x,a,b,c)
+        def g(x, d, a, e):
+            return do_something_else(x, d, a, e)
+
+        h = ProdPdf(f, g)# you can do ProdPdf(f, g)
+        #h is equivalent to
+        def h_equiv(x, a, b, c, d, e):
+            return f(x[0], a, b, c) * g(x[1], d, a, e)
+
+    **Arguments**
+
+    """
+    #FIXME: cache each part if called with same parameter
+    cdef public object func_code
+    cdef int dim
+    cdef public object func_defaults
+    cdef int arglen
+    cdef list allpos
+
+    cdef tuple allf
+
+    cdef readonly int numf
+
+    cdef np.ndarray cache
+    cdef list argcache
+
+    cdef public int hit
+
+    def __init__(self, *arg):
+        allf = list(arg)
+
+        self.func_code, allpos = merge_func_code(*arg, skip_first=True)
+
+        funcpos = allpos[:len(arg)]
+
+        self.func_defaults=None
+        self.dim = -1
+        self.arglen = self.func_code.co_argcount
+        self.allf = arg # f function
+        self.allpos = allpos # position for f arg
+        self.numf = len(self.allf)
+        self.argcache = [None]*self.numf
+        self.cache = np.zeros(self.numf)
+        self.hit = 0
+
+    def __call__(self, *arg):
+        cdef tuple this_arg
+        cdef double ret = 1.
+        cdef double tmp = 0.
+        cdef double tmp_factor = 0.
+        cdef int i
+        cdef np.ndarray thispos
+        for i in range(self.numf):
+            thispos = self.allpos[i]
+            if self.dim >= 0 and i != self.dim:
+                continue
+            elif self.dim >= 0 and i == self.dim:
+                this_arg = construct_arg(arg, thispos)
+            else:
+                this_arg = construct_arg_data(arg, thispos, i)
+
+            if self.argcache[i] is not None and fast_tuple_equal(this_arg, self.argcache[i], 0):
+                tmp = self.cache[i]
+                self.hit+=1
+            else:
+                tmp = self.allf[i](*this_arg)
+                self.argcache[i]=this_arg
+                self.cache[i]=tmp
+
+            ret *= tmp
+        return ret
+
+    def parts(self):
+        return [self._part(i) for i in range(self.numf)]
+
+    def _part(self, int findex):
+
+        def tmp(*arg):
+            thispos = self.allpos[findex]
+            this_arg = construct_arg_data(arg, thispos, findex)
+            ret = self.allf[findex](*this_arg)
+            return ret
+
+        tmp.__name__ = getattr(self.allf[findex],'__name__','unnamedpart')
+        ret = FakeFunc(tmp)
+        ret.func_code = self.func_code
+        return ret
+
+    def eval_parts(self,*arg):
+        cdef tuple this_arg
+        cdef double tmp = 0.
+        cdef int i
+        cdef list ref
+        cdef np.ndarray thispos
+        ret = list()
+        for i in range(self.numf):
+            tmp = self._part(i)(*arg)
+            ret.append(tmp)
+        return tuple(ret)
+
+    def integrate(self, tuple bound, int nint, *arg):
+        cdef int findex
+        cdef tuple this_arg
+        cdef double ret = 1.
+        cdef double thisint = 0.
+        cdef double fac = 0.
+        cdef np.ndarray[np.int_t] fpos
+
+        for findex in range(self.numf):
+            fpos = self.allpos[findex]
+
+            #docking off x and shift due to no x in arg
+            this_arg = construct_arg(arg, fpos[1:]-1)
+            thisf = self.allf[findex]
+
+            thisint = integrate1d(thisf, bound[findex], nint, this_arg)
+            ret *= thisint
+
+        return ret
+
+    def restrict_dim(self, int dim=-1):
+        self.dim = dim

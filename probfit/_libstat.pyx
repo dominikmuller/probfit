@@ -115,7 +115,7 @@ cpdef double compute_bin_lh_f(f,
 
     cdef double ret = 0.
     cdef double bw = 0.
-    
+
     cdef double factor=0.
     cdef double th=0.
     cdef double tw=0.
@@ -155,13 +155,15 @@ cpdef double compute_nll(f,np.ndarray data,w,arg,double badvalue) except *:
     cdef double lh=0
     cdef double nll=0
     cdef double ret=0
-    cdef double thisdata=0
-    cdef np.ndarray[np.double_t] data_ = data
+    # cdef double thisdata=0
+    cdef np.ndarray[np.double_t] thisdata
+    # cdef np.ndarray[np.double_t] data_ = data
+    # cdef np.ndarray data_ = data
     cdef int data_len = len(data)
     cdef np.ndarray[np.double_t] w_
     if w is None:
         for i in range(data_len):
-            thisdata = data_[i]
+            thisdata = data[i]
             lh = f(thisdata,*arg)
             if lh<=0:
                 ret = badvalue
@@ -171,7 +173,7 @@ cpdef double compute_nll(f,np.ndarray data,w,arg,double badvalue) except *:
     else:
         w_ = w
         for i in range(data_len):
-            thisdata = data_[i]
+            thisdata = data[i]
             lh = f(thisdata,*arg)
             if lh<=0:
                 ret = badvalue
@@ -220,7 +222,7 @@ cpdef double compute_bin_chi2_f(f,
     cdef int usew = 1 if weights is not None else 0
     cdef int usee = 1 if error is not None else 0
     cdef int i
-    cdef int datalen = len(edges)-1 
+    cdef int datalen = len(edges)-1
     cdef double diff
     cdef double fx
     cdef double ret = 0.

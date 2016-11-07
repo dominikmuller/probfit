@@ -6,8 +6,10 @@ from math import sqrt, ceil, floor
 from warnings import warn
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 from .nputil import mid, minmax, vector_apply
 from .util import parse_arg, describe
+do_tex = mpl.rcParams['text.usetex']
 
 
 def draw_simultaneous(self, minuit=None, args=None, errors=None, **kwds):
@@ -56,12 +58,25 @@ def _get_args_and_errors(self, minuit=None, args=None, errors=None):
 
 
 def _param_text(parameters, arg, error):
-    txt = u''
-    for i, (k, v) in enumerate(zip(parameters, arg)):
-        txt += u'%s = %5.4g' % (k, v)
-        if error is not None:
-            txt += u'±%5.4g' % error[k]
-        txt += u'\n'
+    if not do_tex:
+        txt = u''
+        for i, (k, v) in enumerate(zip(parameters, arg)):
+            txt += u'%s = %5.4g' % (k, v)
+            if error is not None:
+                txt += u'±%5.4g' % error[k]
+            txt += u'\n'
+    else:
+        txt_l = [r'\begin{eqnarray*}']
+        for i, (k, v) in enumerate(zip(parameters, arg)):
+            ke = k.replace('_', '')
+            if error is None:
+                txt_l.append(
+                    r'%s &= %5.4g\\' % (ke, v))
+            else:
+                txt_l.append(
+                    r'%s &= %5.4g &\pm %5.4g\\' % (ke, v, error[k]))
+        txt_l += [r'\end{eqnarray*}']
+        txt = ' '.join(txt_l)
     return txt
 
 
@@ -71,7 +86,7 @@ def _param_text(parameters, arg, error):
 def draw_ulh(self, minuit=None, bins=100, ax=None, bound=None,
              parmloc=(0.05, 0.95), nfbins=200, print_par=True, grid=True,
              args=None, errors=None, parts=False, show_errbars='normal',
-             no_plot=False):
+             no_plot=False, dim=None):
     data_ret = None
     error_ret = None
     total_ret = None
@@ -81,7 +96,12 @@ def draw_ulh(self, minuit=None, bins=100, ax=None, bound=None,
 
     arg, error = _get_args_and_errors(self, minuit, args, errors)
 
-    n, e = np.histogram(self.data, bins=bins, range=bound, weights=self.weights)
+    if dim is not None:
+        data = np.transpose(self.data)[dim]
+    else:
+        data = self.data
+
+    n, e = np.histogram(data, bins=bins, range=bound, weights=self.weights)
     dataint = (n * np.diff(e)).sum()
     data_ret = (e, n)
 
@@ -98,7 +118,7 @@ def draw_ulh(self, minuit=None, bins=100, ax=None, bound=None,
             weights = None
             if self.weights != None:
                 weights = self.weights ** 2
-            w2, e = np.histogram(self.data, bins=e, weights=weights)
+            w2, e = np.histogram(data, bins=e, weights=weights)
             error_ret = (np.sqrt(w2), np.sqrt(w2))
         else:
             raise ValueError('show_errbars must be \'normal\' or \'sumw2\'')
@@ -490,7 +510,7 @@ def draw_pdf(f, arg, bound, bins=100, scale=1.0, density=True,
         * The rest of keyword argument will be pass to pyplot.plot
 
     **Returns**
-    
+
         x, y of what's being plot
     """
     edges = np.linspace(bound[0], bound[1], bins)

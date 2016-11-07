@@ -117,6 +117,7 @@ cdef class SimultaneousFit:
 
 cdef class UnbinnedLH:
     cdef readonly object f
+    cdef readonly object data_dim
     cdef readonly object weights
     cdef public object func_code
     cdef readonly np.ndarray data
@@ -180,13 +181,23 @@ cdef class UnbinnedLH:
         self.weights = weights
         #only make copy when type mismatch
         self.data = float2double(data)
+        try:
+            self.data_dim = len(data[0])
+        except:
+            self.data_dim = 1
         self.data_len = len(data)
         self.badvalue = badvalue
         self.extended = extended
         self.extended_bound = extended_bound
         self.extended_nint = extended_nint
         if extended and extended_bound is None:
-            self.extended_bound = minmax(data)
+            if self.data_dim > 1:
+                dataT= np.transpose(data)
+                self.extended_bound = ()
+                for d in dataT:
+                    self.extended_bound += (minmax(d), )
+            else:
+                self.extended_bound = minmax(data)
 
     def __call__(self, *arg):
         """
@@ -206,7 +217,8 @@ cdef class UnbinnedLH:
 
     def draw(self, minuit=None, bins=100, ax=None, bound=None,
              parmloc=(0.05, 0.95), nfbins=200, print_par=True, args=None,
-             errors=None, parts=False, show_errbars='normal', no_plot=False):
+             errors=None, parts=False, show_errbars='normal', no_plot=False,
+             dim=None, project_pdf=None):
         """
         Draw comparison between histogram of data and pdf.
 
@@ -256,10 +268,19 @@ cdef class UnbinnedLH:
         ((data_edges, datay), (errorp,errorm), (total_pdf_x, total_pdf_y), parts)
 
         """
-        return plotting.draw_ulh(self, minuit=minuit, bins=bins, ax=ax,
-                                 bound=bound, parmloc=parmloc, nfbins=nfbins, print_par=print_par,
-                                 args=args, errors=errors, parts=parts, show_errbars=show_errbars,
-                                 no_plot=no_plot)
+        project_pdf = project_pdf if project_pdf is not None else []
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(dim)
+
+        ret = plotting.draw_ulh(self, minuit=minuit, bins=bins, ax=ax,
+                                bound=bound, parmloc=parmloc, nfbins=nfbins, print_par=print_par,
+                                args=args, errors=errors, parts=parts, show_errbars=show_errbars,
+                                no_plot=no_plot, dim=dim)
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(-1)
+        return ret
 
     def draw_residual(self, minuit=None, bins=100, ax=None, bound=None,
                       parmloc=(0.05, 0.95), print_par=False, args=None, errors=None,
