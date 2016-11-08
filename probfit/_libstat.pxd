@@ -10,13 +10,13 @@ cpdef double wlogyx(double w,double y, double x)
 
 cpdef bint has_ana_integral(f)
 
-cpdef double integrate1d(f, tuple bound, int nint, tuple arg=*) except *
+cpdef double integrate1d(f, np.ndarray bound, int nint, tuple arg=*) except *
 
 cpdef double integrate1d_with_edges(f,np.ndarray edges, double bw, tuple arg) except *
 
 #these are performance critical code
 cpdef double compute_bin_lh_f(f,
-                    np.ndarray[np.double_t] edges,
+                    np.ndarray edges,
                     np.ndarray[np.double_t] h, #histogram,
                     np.ndarray[np.double_t] w2,
                     double N, #sum of h

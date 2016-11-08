@@ -1147,8 +1147,11 @@ static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
 /* RaiseNeedMoreValuesToUnpack.proto */
 static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
 
-/* RaiseNoneIterError.proto */
-static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
+/* IterFinish.proto */
+static CYTHON_INLINE int __Pyx_IterFinish(void);
+
+/* UnpackItemEndCheck.proto */
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
 
 /* PyFloatBinop.proto */
 #if !CYTHON_COMPILING_IN_PYPY
@@ -1199,12 +1202,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
 /* ExtTypeTest.proto */
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
 
-/* IterFinish.proto */
-static CYTHON_INLINE int __Pyx_IterFinish(void);
-
-/* UnpackItemEndCheck.proto */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
-
 /* PyIntBinop.proto */
 #if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, long intval, int inplace);
@@ -1217,6 +1214,9 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, long int
 static void __Pyx_WriteUnraisable(const char *name, int clineno,
                                   int lineno, const char *filename,
                                   int full_traceback, int nogil);
+
+/* RaiseNoneIterError.proto */
+static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
 
 /* DictGetItem.proto */
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_COMPILING_IN_PYPY
@@ -1614,7 +1614,7 @@ static PyObject *__pyx_n_s_width;
 static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_xname;
 static int __pyx_pf_7probfit_3pdf_10Polynomial___init__(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyObject *__pyx_v_order, PyObject *__pyx_v_xname); /* proto */
-static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyObject *__pyx_v_bound, CYTHON_UNUSED int __pyx_v_nint_subdiv, PyObject *__pyx_v_arg); /* proto */
+static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyArrayObject *__pyx_v_bound, CYTHON_UNUSED int __pyx_v_nint_subdiv, PyObject *__pyx_v_arg); /* proto */
 static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_4__call__(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyObject *__pyx_v_arg); /* proto */
 static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_9func_code___get__(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self); /* proto */
 static int __pyx_pf_7probfit_3pdf_10Polynomial_9func_code_2__set__(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
@@ -2059,7 +2059,7 @@ static int __pyx_pf_7probfit_3pdf_10Polynomial___init__(struct __pyx_obj_7probfi
  *         self.func_code = MinimalFuncCode(varnames)
  *         self.func_defaults = None             # <<<<<<<<<<<<<<
  * 
- *     def integrate(self, tuple bound, int nint_subdiv, *arg):
+ *     def integrate(self, np.ndarray bound, int nint_subdiv, *arg):
  */
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
@@ -2095,16 +2095,16 @@ static int __pyx_pf_7probfit_3pdf_10Polynomial___init__(struct __pyx_obj_7probfi
 /* "probfit/pdf.pyx":46
  *         self.func_defaults = None
  * 
- *     def integrate(self, tuple bound, int nint_subdiv, *arg):             # <<<<<<<<<<<<<<
+ *     def integrate(self, np.ndarray bound, int nint_subdiv, *arg):             # <<<<<<<<<<<<<<
  *         cdef double a, b
  *         a, b = bound
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_7probfit_3pdf_10Polynomial_3integrate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_7probfit_3pdf_10Polynomial_2integrate[] = "Polynomial.integrate(self, tuple bound, int nint_subdiv, *arg)";
+static char __pyx_doc_7probfit_3pdf_10Polynomial_2integrate[] = "Polynomial.integrate(self, ndarray bound, int nint_subdiv, *arg)";
 static PyObject *__pyx_pw_7probfit_3pdf_10Polynomial_3integrate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_bound = 0;
+  PyArrayObject *__pyx_v_bound = 0;
   CYTHON_UNUSED int __pyx_v_nint_subdiv;
   PyObject *__pyx_v_arg = 0;
   PyObject *__pyx_r = 0;
@@ -2153,7 +2153,7 @@ static PyObject *__pyx_pw_7probfit_3pdf_10Polynomial_3integrate(PyObject *__pyx_
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_bound = ((PyObject*)values[0]);
+    __pyx_v_bound = ((PyArrayObject *)values[0]);
     __pyx_v_nint_subdiv = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_nint_subdiv == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -2165,7 +2165,7 @@ static PyObject *__pyx_pw_7probfit_3pdf_10Polynomial_3integrate(PyObject *__pyx_
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_bound), (&PyTuple_Type), 1, "bound", 1))) __PYX_ERR(0, 46, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_bound), __pyx_ptype_5numpy_ndarray, 1, "bound", 0))) __PYX_ERR(0, 46, __pyx_L1_error)
   __pyx_r = __pyx_pf_7probfit_3pdf_10Polynomial_2integrate(((struct __pyx_obj_7probfit_3pdf_Polynomial *)__pyx_v_self), __pyx_v_bound, __pyx_v_nint_subdiv, __pyx_v_arg);
 
   /* function exit code */
@@ -2178,7 +2178,7 @@ static PyObject *__pyx_pw_7probfit_3pdf_10Polynomial_3integrate(PyObject *__pyx_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyObject *__pyx_v_bound, CYTHON_UNUSED int __pyx_v_nint_subdiv, PyObject *__pyx_v_arg) {
+static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj_7probfit_3pdf_Polynomial *__pyx_v_self, PyArrayObject *__pyx_v_bound, CYTHON_UNUSED int __pyx_v_nint_subdiv, PyObject *__pyx_v_arg) {
   double __pyx_v_a;
   double __pyx_v_b;
   double __pyx_v_ret;
@@ -2189,24 +2189,25 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  double __pyx_t_3;
-  double __pyx_t_4;
-  Py_ssize_t __pyx_t_5;
-  PyObject *(*__pyx_t_6)(PyObject *);
-  PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *(*__pyx_t_4)(PyObject *);
+  double __pyx_t_5;
+  double __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  PyObject *(*__pyx_t_8)(PyObject *);
   PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10 = NULL;
   __Pyx_RefNannySetupContext("integrate", 0);
 
   /* "probfit/pdf.pyx":48
- *     def integrate(self, tuple bound, int nint_subdiv, *arg):
+ *     def integrate(self, np.ndarray bound, int nint_subdiv, *arg):
  *         cdef double a, b
  *         a, b = bound             # <<<<<<<<<<<<<<
  *         cdef double ret = 0.
  *         for i in range(self.order+1):
  */
-  if (likely(__pyx_v_bound != Py_None)) {
-    PyObject* sequence = __pyx_v_bound;
+  if ((likely(PyTuple_CheckExact(((PyObject *)__pyx_v_bound)))) || (PyList_CheckExact(((PyObject *)__pyx_v_bound)))) {
+    PyObject* sequence = ((PyObject *)__pyx_v_bound);
     #if !CYTHON_COMPILING_IN_PYPY
     Py_ssize_t size = Py_SIZE(sequence);
     #else
@@ -2218,8 +2219,13 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
       __PYX_ERR(0, 48, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
-    __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
+    if (likely(PyTuple_CheckExact(sequence))) {
+      __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
+    } else {
+      __pyx_t_1 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
+    }
     __Pyx_INCREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_t_2);
     #else
@@ -2229,14 +2235,31 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
     __Pyx_GOTREF(__pyx_t_2);
     #endif
   } else {
-    __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 48, __pyx_L1_error)
+    Py_ssize_t index = -1;
+    __pyx_t_3 = PyObject_GetIter(((PyObject *)__pyx_v_bound)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = Py_TYPE(__pyx_t_3)->tp_iternext;
+    index = 0; __pyx_t_1 = __pyx_t_4(__pyx_t_3); if (unlikely(!__pyx_t_1)) goto __pyx_L3_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_1);
+    index = 1; __pyx_t_2 = __pyx_t_4(__pyx_t_3); if (unlikely(!__pyx_t_2)) goto __pyx_L3_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_2);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_4(__pyx_t_3), 2) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
+    __pyx_t_4 = NULL;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    goto __pyx_L4_unpacking_done;
+    __pyx_L3_unpacking_failed:;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_4 = NULL;
+    if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+    __PYX_ERR(0, 48, __pyx_L1_error)
+    __pyx_L4_unpacking_done:;
   }
-  __pyx_t_3 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_5 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_5 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_a = __pyx_t_3;
-  __pyx_v_b = __pyx_t_4;
+  __pyx_v_a = __pyx_t_5;
+  __pyx_v_b = __pyx_t_6;
 
   /* "probfit/pdf.pyx":49
  *         cdef double a, b
@@ -2265,35 +2288,35 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
-    __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_5 = 0;
-    __pyx_t_6 = NULL;
+    __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_7 = 0;
+    __pyx_t_8 = NULL;
   } else {
-    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __pyx_t_7 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __pyx_t_8 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 50, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
-    if (likely(!__pyx_t_6)) {
+    if (likely(!__pyx_t_8)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_1)) break;
+        if (__pyx_t_7 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
-        if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+        if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 50, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
     } else {
-      __pyx_t_2 = __pyx_t_6(__pyx_t_1);
+      __pyx_t_2 = __pyx_t_8(__pyx_t_1);
       if (unlikely(!__pyx_t_2)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
@@ -2316,9 +2339,9 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
  */
     __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_i, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L1_error)
+    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_ai1 = pow(__pyx_v_a, __pyx_t_4);
+    __pyx_v_ai1 = pow(__pyx_v_a, __pyx_t_6);
 
     /* "probfit/pdf.pyx":52
  *         for i in range(self.order+1):
@@ -2329,9 +2352,9 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
  */
     __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_i, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L1_error)
+    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_bi1 = pow(__pyx_v_b, __pyx_t_4);
+    __pyx_v_bi1 = pow(__pyx_v_b, __pyx_t_6);
 
     /* "probfit/pdf.pyx":53
  *             ai1 = pow(a,i+1)
@@ -2342,30 +2365,30 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
  */
     __pyx_t_2 = PyFloat_FromDouble(__pyx_v_ret); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = __Pyx_PyInt_AddObjC(__pyx_v_i, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_8 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_, __pyx_t_7, 1., 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyObject_GetItem(__pyx_v_arg, __pyx_v_i); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_9 = PyNumber_Multiply(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_v_i, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_9 = __Pyx_PyFloat_DivideCObj(__pyx_float_1_, __pyx_t_3, 1., 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 53, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyFloat_FromDouble((__pyx_v_bi1 - __pyx_v_ai1)); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_8 = PyNumber_Multiply(__pyx_t_9, __pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyObject_GetItem(__pyx_v_arg, __pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_10 = PyNumber_Multiply(__pyx_t_9, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyNumber_InPlaceAdd(__pyx_t_2, __pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyFloat_FromDouble((__pyx_v_bi1 - __pyx_v_ai1)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_9 = PyNumber_Multiply(__pyx_t_10, __pyx_t_3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_t_2, __pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_7); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 53, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_v_ret = __pyx_t_4;
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_ret = __pyx_t_6;
 
     /* "probfit/pdf.pyx":50
  *         a, b = bound
@@ -2394,7 +2417,7 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
   /* "probfit/pdf.pyx":46
  *         self.func_defaults = None
  * 
- *     def integrate(self, tuple bound, int nint_subdiv, *arg):             # <<<<<<<<<<<<<<
+ *     def integrate(self, np.ndarray bound, int nint_subdiv, *arg):             # <<<<<<<<<<<<<<
  *         cdef double a, b
  *         a, b = bound
  */
@@ -2403,9 +2426,9 @@ static PyObject *__pyx_pf_7probfit_3pdf_10Polynomial_2integrate(struct __pyx_obj
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_XDECREF(__pyx_t_10);
   __Pyx_AddTraceback("probfit.pdf.Polynomial.integrate", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -11841,9 +11864,51 @@ static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, in
                  index, (index == 1) ? "" : "s");
 }
 
-/* RaiseNoneIterError */
-      static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
+/* IterFinish */
+      static CYTHON_INLINE int __Pyx_IterFinish(void) {
+#if CYTHON_FAST_THREAD_STATE
+    PyThreadState *tstate = PyThreadState_GET();
+    PyObject* exc_type = tstate->curexc_type;
+    if (unlikely(exc_type)) {
+        if (likely(exc_type == PyExc_StopIteration) || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)) {
+            PyObject *exc_value, *exc_tb;
+            exc_value = tstate->curexc_value;
+            exc_tb = tstate->curexc_traceback;
+            tstate->curexc_type = 0;
+            tstate->curexc_value = 0;
+            tstate->curexc_traceback = 0;
+            Py_DECREF(exc_type);
+            Py_XDECREF(exc_value);
+            Py_XDECREF(exc_tb);
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#else
+    if (unlikely(PyErr_Occurred())) {
+        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
+            PyErr_Clear();
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
+#endif
+}
+
+/* UnpackItemEndCheck */
+      static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
+    if (unlikely(retval)) {
+        Py_DECREF(retval);
+        __Pyx_RaiseTooManyValuesError(expected);
+        return -1;
+    } else {
+        return __Pyx_IterFinish();
+    }
+    return 0;
 }
 
 /* PyFloatBinop */
@@ -12166,53 +12231,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
     return 0;
 }
 
-/* IterFinish */
-          static CYTHON_INLINE int __Pyx_IterFinish(void) {
-#if CYTHON_FAST_THREAD_STATE
-    PyThreadState *tstate = PyThreadState_GET();
-    PyObject* exc_type = tstate->curexc_type;
-    if (unlikely(exc_type)) {
-        if (likely(exc_type == PyExc_StopIteration) || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)) {
-            PyObject *exc_value, *exc_tb;
-            exc_value = tstate->curexc_value;
-            exc_tb = tstate->curexc_traceback;
-            tstate->curexc_type = 0;
-            tstate->curexc_value = 0;
-            tstate->curexc_traceback = 0;
-            Py_DECREF(exc_type);
-            Py_XDECREF(exc_value);
-            Py_XDECREF(exc_tb);
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#else
-    if (unlikely(PyErr_Occurred())) {
-        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
-            PyErr_Clear();
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#endif
-}
-
-/* UnpackItemEndCheck */
-          static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    } else {
-        return __Pyx_IterFinish();
-    }
-    return 0;
-}
-
 /* PyIntBinop */
           #if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED int inplace) {
@@ -12369,6 +12387,11 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_U
     if (nogil)
         PyGILState_Release(state);
 #endif
+}
+
+/* RaiseNoneIterError */
+          static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
 }
 
 /* SaveResetException */

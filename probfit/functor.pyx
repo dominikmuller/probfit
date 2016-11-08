@@ -68,6 +68,26 @@ cpdef bint fast_tuple_equal(tuple t1, tuple t2 , int t2_offset) except *:
 
     return ret
 
+cpdef bint fast_array_equal(np.ndarray t1, np.ndarray t2 , int t2_offset) except *:
+    #t=last_arg
+    #t2=arg
+    cdef double tmp1,tmp2
+    cdef int i,ind
+    cdef int tsize = len(t2)-t2_offset
+    cdef bint ret = 0
+    cdef double precision = 1e-16
+    if len(t1) ==0 and tsize==0:
+        return 1
+
+    for i in range(0, tsize):
+        ind = i+t2_offset
+        tmp1 = t1[i]
+        tmp2 = t2[ind]
+        ret = abs(tmp1-tmp2) < precision
+        if not ret: break
+
+    return ret
+
 cdef class Convolve:#with gy cache
     """
     Make convolution from supplied **f** and **g**. If your functions are
@@ -230,7 +250,7 @@ cdef class Extended:
         cdef double fval = self.f(*arg[:-1])
         return N*fval
 
-    def integrate(self, tuple bound, int nint, *arg):
+    def integrate(self, np.ndarray bound, int nint, *arg):
         cdef double N = arg[-1]
         cdef double ana = integrate1d(self.f, bound, nint, arg[:-1])
         return N*ana
@@ -400,7 +420,7 @@ cdef class AddPdf:
             ret.append(tmp)
         return tuple(ret)
 
-    def integrate(self, tuple bound, int nint, *arg):
+    def integrate(self, np.ndarray bound, int nint, *arg):
         cdef int findex
         cdef tuple this_arg
         cdef double ret = 0.
@@ -553,7 +573,7 @@ cdef class AddPdfNorm:
             ret.append(fac*self.allf[findex](*farg))
         return tuple(ret)
 
-    def integrate(self, tuple bound, int nint, *arg):
+    def integrate(self, np.ndarray bound, int nint, *arg):
         cdef int findex
         cdef double allfac = 0.
         cdef double fac = 0.
@@ -640,7 +660,7 @@ cdef class Normalized:
     cdef f
     cdef double norm_cache
     cdef tuple last_arg
-    cdef tuple bound
+    cdef np.ndarray bound
     cdef int nint
     cdef np.ndarray edges
     #cdef np.ndarray binwidth
@@ -698,9 +718,9 @@ cdef class Normalized:
                                                     self.binwidth, targ)
         return self.norm_cache
 
-    def integrate(self, tuple bound, int bint, *arg):
+    def integrate(self, np.ndarray bound, int bint, *arg):
         # Don't have to integrate if bound are the original bounds.
-        if fast_tuple_equal(bound, self.bound, 0):
+        if fast_array_equal(bound, self.bound, 0):
             return 1.
         n = self._compute_normalization(arg)
         X = integrate1d(self.f, bound, bint, arg)
@@ -908,7 +928,7 @@ cdef class ProdPdf:
             ret.append(tmp)
         return tuple(ret)
 
-    def integrate(self, tuple bound, int nint, *arg):
+    def integrate(self, np.ndarray bound, int nint, *arg):
         cdef int findex
         cdef tuple this_arg
         cdef double ret = 1.

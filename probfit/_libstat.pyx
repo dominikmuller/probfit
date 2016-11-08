@@ -38,7 +38,7 @@ cpdef inline bint has_ana_integral(f):
 cpdef double integrate1d_with_edges(f, np.ndarray edges, double bw, tuple arg) except *:
     if has_ana_integral(f):
         # this is not exactly correct for non-uniform bin
-        return f.integrate((edges[0],edges[-1]), len(edges-1), *arg)
+        return f.integrate(edges[[0, -1]], len(edges-1), *arg)
     return  simpson38(f, edges, bw, arg)
 
 cdef double simpson38(f, np.ndarray edges, double bw, tuple arg):
@@ -49,7 +49,7 @@ cdef double simpson38(f, np.ndarray edges, double bw, tuple arg):
 
 
 #TODO: do something smarter like dynamic edge based on derivative or so
-cpdef double integrate1d(f, tuple bound, int nint, tuple arg=None) except*:
+cpdef double integrate1d(f, np.ndarray bound, int nint, tuple arg=None) except*:
     """
     compute 1d integral
     """
@@ -89,7 +89,7 @@ cpdef double wlogyx(double w,double y, double x):
 
 #these are performance critical code
 cpdef double compute_bin_lh_f(f,
-                    np.ndarray[np.double_t] edges,
+                    np.ndarray edges,
                     np.ndarray[np.double_t] h, #histogram,
                     np.ndarray[np.double_t] w2,
                     double N, #sum of h
@@ -121,11 +121,11 @@ cpdef double compute_bin_lh_f(f,
     cdef double th=0.
     cdef double tw=0.
     cdef double tm=0.
-    for i in range(n-1):#h has length of n-1
+    for i in range(n):#h has length of n-1
         #ret -= h[i]*log(midvalues[i])#non zero subtraction
-        bw = edges[i+1]-edges[i]
+        # bw = edges[i+1]-edges[i] Don't think we actually need this here
         th = h[i]
-        tm = integrate1d(f, (edges[i],edges[i+1]), nint_subdiv, arg)
+        tm = integrate1d(f, edges[i], nint_subdiv, arg)
         if not extend:
             if not use_sumw2:
                 ret -= xlogyx(th,tm*N)+(th-tm*N)

@@ -43,7 +43,7 @@ cdef class Polynomial:
         self.func_code = MinimalFuncCode(varnames)
         self.func_defaults = None
 
-    def integrate(self, tuple bound, int nint_subdiv, *arg):
+    def integrate(self, np.ndarray bound, int nint_subdiv, *arg):
         cdef double a, b
         a, b = bound
         cdef double ret = 0.

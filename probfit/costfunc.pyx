@@ -126,7 +126,7 @@ cdef class UnbinnedLH:
     cdef readonly badvalue
     cdef readonly tuple last_arg
     cdef readonly bint extended
-    cdef readonly tuple extended_bound
+    cdef readonly np.ndarray extended_bound
     cdef readonly int extended_nint
     def __init__(self, f, data, weights=None, extended=False,
                  extended_bound=None, extended_nint=100, badvalue=-100000):
@@ -196,9 +196,9 @@ cdef class UnbinnedLH:
                 dataT= np.transpose(data)
                 self.extended_bound = ()
                 for d in dataT:
-                    self.extended_bound += (minmax(d), )
+                    self.extended_bound += np.array((minmax(d), ))
             else:
-                self.extended_bound = minmax(data)
+                self.extended_bound = np.array(minmax(data))
 
     def __call__(self, *arg):
         """
@@ -371,12 +371,12 @@ cdef class BinnedLH:
     cdef readonly np.ndarray edges
     cdef readonly np.ndarray midpoints
     cdef readonly np.ndarray binwidth
-    cdef readonly int bins
-    cdef readonly double mymin
-    cdef readonly double mymax
+    cdef readonly tuple bins
+    cdef readonly tuple bound
     cdef readonly double badvalue
     cdef readonly tuple last_arg
     cdef readonly int ndof
+    cdef readonly int data_dim
     cdef readonly bint extended
     cdef readonly bint use_w2
     cdef int nint_subdiv
@@ -481,33 +481,59 @@ cdef class BinnedLH:
         self.func_code = FakeFuncCode(f, dock=True)
         self.use_w2 = use_w2
         self.extended = extended
+        try:
+            self.data_dim = len(data[0])
+        except:
+            self.data_dim = 1
 
-        if bound is None: bound = minmax(data)
+        if type(bins) != tuple:
+            self.bins = tuple(bins for i in edges)
+        else:
+            self.bins = bins
 
-        self.mymin, self.mymax = bound
+        if bound is None:
+            if self.data_dim > 1:
+                dataT= np.transpose(data)
+                bound = ()
+                for d in dataT:
+                    bound += (minmax(d), )
+            else:
+                bound = minmax(data),
 
-        h, self.edges = np.histogram(data, bins, range=bound, weights=weights)
+        self.bound = bound
 
-        self.h = float2double(h)
+        h, edges = np.histogramdd(data, bins, range=bound, weights=weights)
+
+        # Transform the edges so they are in a list matched to the
+        # flattened bin contents
+        u_edges = [e[1:] for e in edges]
+        d_edges = [e[:-1] for e in edges]
+        u_edges = np.meshgrid(*u_edges[::-1])
+        d_edges = np.meshgrid(*d_edges[::-1])
+        l = []
+        for U, D in zip(u_edges, d_edges):
+            U = U.flatten()
+            D = D.flatten()
+            l.append([(d, u) for u, d in zip(U, D)])
+        self.edges = np.array(zip(*l))
+
+        self.h = float2double(h.flatten())
         self.N = csum(self.h)
 
         if weights is not None:
             if weighterrors is None:
-                self.w2, _ = np.histogram(data, bins, range=bound,
-                                          weights=weights * weights)
+                self.w2, _ = np.histogramdd(data, bins, range=bound,
+                                            weights=weights * weights)
             else:
-                self.w2, _ = np.histogram(data, bins, range=bound,
-                                          weights=weighterrors * weighterrors)
+                self.w2, _ = np.histogramdd(data, bins, range=bound,
+                                            weights=weighterrors * weighterrors)
         else:
-            self.w2, _ = np.histogram(data, bins, range=bound, weights=None)
+            self.w2, _ = np.histogramdd(data, bins, range=bound, weights=None)
 
-        self.w2 = float2double(self.w2)
-        self.midpoints = mid(self.edges)
-        self.binwidth = np.diff(self.edges)
+        self.w2 = float2double(self.w2.flatten())
 
-        self.bins = bins
         self.badvalue = badvalue
-        self.ndof = self.bins - (self.func_code.co_argcount - 1)
+        self.ndof = np.product(self.bins) - (self.func_code.co_argcount - 1)
 
         self.nint_subdiv = nint_subdiv
 
