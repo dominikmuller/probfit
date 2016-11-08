@@ -640,6 +640,7 @@ cdef class Normalized:
     cdef f
     cdef double norm_cache
     cdef tuple last_arg
+    cdef tuple bound
     cdef int nint
     cdef np.ndarray edges
     #cdef np.ndarray binwidth
@@ -655,6 +656,7 @@ cdef class Normalized:
         self.norm_cache= 1.
         self.last_arg = None
         self.nint = nint
+        self.bound = bound
         # normx = normx if normx is not None else np.linspace(range[0],range[1],nint)
         #         if normx.dtype!=normx.dtype:
         #             normx = normx.astype(np.float64)
@@ -697,6 +699,9 @@ cdef class Normalized:
         return self.norm_cache
 
     def integrate(self, tuple bound, int bint, *arg):
+        # Don't have to integrate if bound are the original bounds.
+        if fast_tuple_equal(bound, self.bound, 0):
+            return 1.
         n = self._compute_normalization(arg)
         X = integrate1d(self.f, bound, bint, arg)
         if self.floatwarned < self.warnfloat  and n < 1e-100:
