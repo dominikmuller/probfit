@@ -625,7 +625,7 @@ struct __pyx_obj_7probfit_8funcutil_FakeFunc;
  * 
  * 
  * cdef class FakeFunc:             # <<<<<<<<<<<<<<
- *     cdef public f
+ *     cdef f
  *     cdef public func_code
  */
 struct __pyx_obj_7probfit_8funcutil_FakeFunc {
@@ -1099,9 +1099,6 @@ static PyObject *__pyx_pf_7probfit_8funcutil_15MinimalFuncCode_2append(CYTHON_UN
 static PyObject *__pyx_pf_7probfit_8funcutil_12FakeFuncCode___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_f, PyObject *__pyx_v_prmt, PyObject *__pyx_v_dock, PyObject *__pyx_v_append); /* proto */
 static int __pyx_pf_7probfit_8funcutil_8FakeFunc___init__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self, PyObject *__pyx_v_f, PyObject *__pyx_v_prmt); /* proto */
 static PyObject *__pyx_pf_7probfit_8funcutil_8FakeFunc_2__call__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self, PyObject *__pyx_v_arg); /* proto */
-static PyObject *__pyx_pf_7probfit_8funcutil_8FakeFunc_1f___get__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self); /* proto */
-static int __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_2__set__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_4__del__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7probfit_8funcutil_8FakeFunc_9func_code___get__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self); /* proto */
 static int __pyx_pf_7probfit_8funcutil_8FakeFunc_9func_code_2__set__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_7probfit_8funcutil_8FakeFunc_9func_code_4__del__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self); /* proto */
@@ -3480,104 +3477,9 @@ static PyObject *__pyx_pf_7probfit_8funcutil_8FakeFunc_2__call__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "probfit/funcutil.pyx":157
- * 
- * cdef class FakeFunc:
- *     cdef public f             # <<<<<<<<<<<<<<
- *     cdef public func_code
- *     cdef public func_defaults
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_7probfit_8funcutil_8FakeFunc_1f_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_7probfit_8funcutil_8FakeFunc_1f_1__get__(PyObject *__pyx_v_self) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7probfit_8funcutil_8FakeFunc_1f___get__(((struct __pyx_obj_7probfit_8funcutil_FakeFunc *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_7probfit_8funcutil_8FakeFunc_1f___get__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__get__", 0);
-  __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_self->f);
-  __pyx_r = __pyx_v_self->f;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static int __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
-  int __pyx_r;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_2__set__(((struct __pyx_obj_7probfit_8funcutil_FakeFunc *)__pyx_v_self), ((PyObject *)__pyx_v_value));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static int __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_2__set__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self, PyObject *__pyx_v_value) {
-  int __pyx_r;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__set__", 0);
-  __Pyx_INCREF(__pyx_v_value);
-  __Pyx_GIVEREF(__pyx_v_value);
-  __Pyx_GOTREF(__pyx_v_self->f);
-  __Pyx_DECREF(__pyx_v_self->f);
-  __pyx_v_self->f = __pyx_v_value;
-
-  /* function exit code */
-  __pyx_r = 0;
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static int __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_5__del__(PyObject *__pyx_v_self) {
-  int __pyx_r;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_4__del__(((struct __pyx_obj_7probfit_8funcutil_FakeFunc *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static int __pyx_pf_7probfit_8funcutil_8FakeFunc_1f_4__del__(struct __pyx_obj_7probfit_8funcutil_FakeFunc *__pyx_v_self) {
-  int __pyx_r;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_INCREF(Py_None);
-  __Pyx_GIVEREF(Py_None);
-  __Pyx_GOTREF(__pyx_v_self->f);
-  __Pyx_DECREF(__pyx_v_self->f);
-  __pyx_v_self->f = Py_None;
-
-  /* function exit code */
-  __pyx_r = 0;
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
 /* "probfit/funcutil.pyx":158
  * cdef class FakeFunc:
- *     cdef public f
+ *     cdef f
  *     cdef public func_code             # <<<<<<<<<<<<<<
  *     cdef public func_defaults
  *     cdef public __name__
@@ -3671,7 +3573,7 @@ static int __pyx_pf_7probfit_8funcutil_8FakeFunc_9func_code_4__del__(struct __py
 }
 
 /* "probfit/funcutil.pyx":159
- *     cdef public f
+ *     cdef f
  *     cdef public func_code
  *     cdef public func_defaults             # <<<<<<<<<<<<<<
  *     cdef public __name__
@@ -3928,19 +3830,6 @@ static int __pyx_tp_clear_7probfit_8funcutil_FakeFunc(PyObject *o) {
   return 0;
 }
 
-static PyObject *__pyx_getprop_7probfit_8funcutil_8FakeFunc_f(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_1__get__(o);
-}
-
-static int __pyx_setprop_7probfit_8funcutil_8FakeFunc_f(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
-  if (v) {
-    return __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_3__set__(o, v);
-  }
-  else {
-    return __pyx_pw_7probfit_8funcutil_8FakeFunc_1f_5__del__(o);
-  }
-}
-
 static PyObject *__pyx_getprop_7probfit_8funcutil_8FakeFunc_func_code(PyObject *o, CYTHON_UNUSED void *x) {
   return __pyx_pw_7probfit_8funcutil_8FakeFunc_9func_code_1__get__(o);
 }
@@ -3985,7 +3874,6 @@ static PyMethodDef __pyx_methods_7probfit_8funcutil_FakeFunc[] = {
 };
 
 static struct PyGetSetDef __pyx_getsets_7probfit_8funcutil_FakeFunc[] = {
-  {(char *)"f", __pyx_getprop_7probfit_8funcutil_8FakeFunc_f, __pyx_setprop_7probfit_8funcutil_8FakeFunc_f, (char *)"f: object", 0},
   {(char *)"func_code", __pyx_getprop_7probfit_8funcutil_8FakeFunc_func_code, __pyx_setprop_7probfit_8funcutil_8FakeFunc_func_code, (char *)"func_code: object", 0},
   {(char *)"func_defaults", __pyx_getprop_7probfit_8funcutil_8FakeFunc_func_defaults, __pyx_setprop_7probfit_8funcutil_8FakeFunc_func_defaults, (char *)"func_defaults: object", 0},
   {(char *)"__name__", __pyx_getprop_7probfit_8funcutil_8FakeFunc___name__, __pyx_setprop_7probfit_8funcutil_8FakeFunc___name__, (char *)"__name__: object", 0},

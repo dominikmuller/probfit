@@ -5,6 +5,7 @@ from libc.math cimport exp, pow, fabs, log, tgamma, lgamma, sqrt
 include "log1p_patch.pxi"
 from warnings import warn
 from .probfit_warnings import LogWarning
+cimport cython
 
 np.import_array()
 
@@ -150,6 +151,7 @@ cpdef double compute_bin_lh_f(f,
     return ret
 
 
+@cython.boundscheck(False)
 cpdef double compute_nll(f,np.ndarray data,w,arg,double badvalue) except *:
     cdef int i=0
     cdef double lh=0

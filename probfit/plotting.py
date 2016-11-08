@@ -155,12 +155,17 @@ def draw_ulh(self, minuit=None, bins=100, ax=None, bound=None,
 def draw_residual_ulh(self, minuit=None, bins=100, ax=None, bound=None,
                       parmloc=(0.05, 0.95), print_par=False, grid=True,
                       args=None, errors=None, show_errbars=True,
-                      errbar_algo='normal', norm=False):
+                      errbar_algo='normal', norm=False, dim=None):
     ax = plt.gca() if ax is None else ax
 
     arg, error = _get_args_and_errors(self, minuit, args, errors)
 
-    n, e = np.histogram(self.data, bins=bins, range=bound, weights=self.weights)
+    if dim is not None:
+        data = np.transpose(self.data)[dim]
+    else:
+        data = self.data
+
+    n, e = np.histogram(data, bins=bins, range=bound, weights=self.weights)
     dataint = (n * np.diff(e)).sum()
     scale = dataint if not self.extended else 1.0
     w2 = None
@@ -170,7 +175,7 @@ def draw_residual_ulh(self, minuit=None, bins=100, ax=None, bound=None,
         weights = None
         if self.weights != None:
             weights = self.weights ** 2
-        w2, e = np.histogram(self.data, bins=e, weights=weights)
+        w2, e = np.histogram(data, bins=e, weights=weights)
     else:
         raise ValueError('errbar_algo must be \'normal\' or \'sumw2\'')
     yerr = np.sqrt(w2)

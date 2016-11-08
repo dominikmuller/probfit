@@ -154,7 +154,7 @@ class FakeFuncCode:
 
 
 cdef class FakeFunc:
-    cdef public f
+    cdef f
     cdef public func_code
     cdef public func_defaults
     cdef public __name__
