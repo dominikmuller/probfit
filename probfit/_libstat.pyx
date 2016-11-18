@@ -41,7 +41,7 @@ cpdef double integrate1d_with_edges(f, np.ndarray edges, double bw, tuple arg) e
         return f.integrate(edges[[0, -1]], len(edges-1), *arg)
     return  simpson38(f, edges, bw, arg)
 
-cdef double simpson38(f, np.ndarray edges, double bw, tuple arg):
+cdef double simpson38(f, np.ndarray[np.double_t] edges, double bw, tuple arg):
     cdef np.ndarray[np.double_t] yedges = _vector_apply(f, edges, arg)
     cdef np.ndarray[np.double_t] left38 = _vector_apply(f, (2.*edges[1:]+edges[:-1])/3., arg)
     cdef np.ndarray[np.double_t] right38 = _vector_apply(f, (edges[1:]+2.*edges[:-1])/3., arg)
@@ -89,7 +89,7 @@ cpdef double wlogyx(double w,double y, double x):
 
 #these are performance critical code
 cpdef double compute_bin_lh_f(f,
-                    np.ndarray edges,
+                    np.ndarray[np.double_t, ndim=3] edges,
                     np.ndarray[np.double_t] h, #histogram,
                     np.ndarray[np.double_t] w2,
                     double N, #sum of h
@@ -113,7 +113,7 @@ cpdef double compute_bin_lh_f(f,
     """
     cdef int i
     cdef int n = len(edges)
-
+    squeezed = np.squeeze(edges)
     cdef double ret = 0.
     cdef double bw = 0.
 
@@ -125,7 +125,7 @@ cpdef double compute_bin_lh_f(f,
         #ret -= h[i]*log(midvalues[i])#non zero subtraction
         # bw = edges[i+1]-edges[i] Don't think we actually need this here
         th = h[i]
-        tm = integrate1d(f, edges[i], nint_subdiv, arg)
+        tm = integrate1d(f, squeezed[i], nint_subdiv, arg)
         if not extend:
             if not use_sumw2:
                 ret -= xlogyx(th,tm*N)+(th-tm*N)

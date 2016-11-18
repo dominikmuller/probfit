@@ -363,6 +363,7 @@ cdef class UnbinnedLH:
 cdef class BinnedLH:
     cdef readonly object f
     cdef readonly object vf
+    cdef readonly list one_d_edges
     cdef readonly object func_code
     cdef readonly np.ndarray h
     cdef readonly np.ndarray w
@@ -487,7 +488,7 @@ cdef class BinnedLH:
             self.data_dim = 1
 
         if type(bins) != tuple:
-            self.bins = tuple(bins for i in edges)
+            self.bins = tuple(bins for i in range(self.data_dim))
         else:
             self.bins = bins
 
@@ -500,16 +501,24 @@ cdef class BinnedLH:
             else:
                 bound = minmax(data),
 
+        print bound
         self.bound = bound
+        print bins
+
 
         h, edges = np.histogramdd(data, bins, range=bound, weights=weights)
+        print h
+        print edges
+        self.one_d_edges = edges
 
         # Transform the edges so they are in a list matched to the
         # flattened bin contents
         u_edges = [e[1:] for e in edges]
         d_edges = [e[:-1] for e in edges]
-        u_edges = np.meshgrid(*u_edges[::-1])
-        d_edges = np.meshgrid(*d_edges[::-1])
+        # u_edges = np.meshgrid(*u_edges[::-1])
+        # d_edges = np.meshgrid(*d_edges[::-1])
+        u_edges = np.meshgrid(*u_edges)
+        d_edges = np.meshgrid(*d_edges)
         l = []
         for U, D in zip(u_edges, d_edges):
             U = U.flatten()
@@ -517,7 +526,7 @@ cdef class BinnedLH:
             l.append([(d, u) for u, d in zip(U, D)])
         self.edges = np.array(zip(*l))
 
-        self.h = float2double(h.flatten())
+        self.h = float2double(h.transpose().flatten())
         self.N = csum(self.h)
 
         if weights is not None:
@@ -555,7 +564,8 @@ cdef class BinnedLH:
 
     def draw(self, minuit=None, ax = None,
              parmloc=(0.05, 0.95), nfbins=200, print_par=True,
-             args=None, errors=None, parts=False, no_plot=False):
+             args=None, errors=None, parts=False, no_plot=False,
+             dim=None, project_pdf=None):
         """
         Draw comparison between histogram of data and pdf.
 
@@ -585,12 +595,22 @@ cdef class BinnedLH:
         ((data_edges, data_y), (errorp,errorm), (total_pdf_x, total_pdf_y), parts)
 
         """
-        return plotting.draw_blh(self, minuit=minuit,
-                                 ax=ax, parmloc=parmloc, nfbins=nfbins, print_par=print_par,
-                                 args=args, errors=errors, parts=parts, no_plot=no_plot)
+        project_pdf = project_pdf if project_pdf is not None else []
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(dim)
+
+        ret = plotting.draw_blh(self, minuit=minuit,
+                                ax=ax, parmloc=parmloc, nfbins=nfbins, print_par=print_par,
+                                args=args, errors=errors, parts=parts, no_plot=no_plot, dim=dim)
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(-1)
+        return ret
 
     def draw_residual(self, minuit=None, ax = None, parmloc=(0.05,0.95),
-                      print_par=False, args=None, errors=None, norm=False):
+                      print_par=False, args=None, errors=None, norm=False,
+                      dim=None, project_pdf=None):
         """
         Draw difference between data and pdf.
 
@@ -614,9 +634,19 @@ cdef class BinnedLH:
             - **norm** If True, draw difference normalized by error
               Default False.
         """
-        return plotting.draw_residual_blh(self, minuit=minuit,
-                                          ax=ax, parmloc=parmloc, print_par=print_par,
-                                          args=args, errors=errors, norm=norm)
+        project_pdf = project_pdf if project_pdf is not None else []
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(dim)
+
+        ret = plotting.draw_residual_blh(self, minuit=minuit,
+                                         ax=ax, parmloc=parmloc, print_par=print_par,
+                                         args=args, errors=errors, norm=norm, dim=dim)
+        if dim is not None:
+            for pdf in project_pdf:
+                pdf.restrict_dim(-1)
+
+        return ret
 
     def default_errordef(self):
         return 0.5

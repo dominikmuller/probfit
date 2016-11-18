@@ -352,7 +352,7 @@ def draw_bx2(self, minuit=None, parmloc=(0.05, 0.95), nfbins=500, ax=None,
 
 def draw_blh(self, minuit=None, parmloc=(0.05, 0.95),
              nfbins=1000, ax=None, print_par=True, grid=True,
-             args=None, errors=None, parts=False, no_plot=False):
+             args=None, errors=None, parts=False, no_plot=False, dim=None):
     data_ret = None
     error_ret = None
     total_ret = None
@@ -362,30 +362,51 @@ def draw_blh(self, minuit=None, parmloc=(0.05, 0.95),
 
     arg, error = _get_args_and_errors(self, minuit, args, errors)
 
-    m = mid(self.edges)
+    if dim is not None:
+        edges = self.one_d_edges[dim]
+        hist_1d = []
+        if self.use_w2:
+            w2_1d = []
+        for e in edges[:-1]:
+            mask = np.array([np.any(i[dim][0]==e) for i in self.edges])
+            hist_1d.append(np.sum(self.h[mask]))
+            if self.use_w2:
+                w2_1d.append(np.sum(self.w2[mask]))
 
-    if self.use_w2:
-        err = np.sqrt(self.w2)
+        n = np.array(hist_1d)
+        if self.use_w2:
+            err = np.sqrt(w2_1d)
+        else:
+            err = np.sqrt(n)
+
+        m = mid(edges)
+
     else:
-        err = np.sqrt(self.h)
+        edges = self.edges
+        m = mid(edges)
 
-    n = np.copy(self.h)
-    dataint = (n * np.diff(self.edges)).sum()
+        n = np.copy(self.h)
+        if self.use_w2:
+            err = np.sqrt(self.w2)
+        else:
+            err = np.sqrt(self.h)
+
+    dataint = (n * np.diff(edges)).sum()
     scale = dataint if not self.extended else 1.0
 
     if not no_plot:
         ax.errorbar(m, n, err, fmt='.')
-    data_ret = (self.edges, n)
+    data_ret = (edges, n)
     error_ret = (err, err)
 
     draw_arg = [('lw', 2)]
     if not parts:
         draw_arg.append(('color', 'r'))
-    bound = (self.edges[0], self.edges[-1])
+    bound = (edges[0], edges[-1])
 
     # scale back to bins
     if self.extended:
-        scale = nfbins / float(self.bins)
+        scale = nfbins / float(len(edges)-1)
     total_ret = draw_pdf(self.f, arg, bins=nfbins, bound=bound, ax=ax, density=not self.extended,
                          scale=scale, no_plot=no_plot, **dict(draw_arg))
     if parts:
@@ -409,34 +430,60 @@ def draw_blh(self, minuit=None, parmloc=(0.05, 0.95),
 
 def draw_residual_blh(self, minuit=None, parmloc=(0.05, 0.95),
                       ax=None, print_par=False, args=None, errors=None,
-                      norm=False, grid=True):
+                      norm=False, grid=True, dim=None):
     ax = plt.gca() if ax is None else ax
 
     arg, error = _get_args_and_errors(self, minuit, args, errors)
 
-    m = mid(self.edges)
+    if dim is not None:
+        edges = self.one_d_edges[dim]
+        hist_1d = []
+        if self.use_w2:
+            w2_1d = []
+        for e in edges[:-1]:
+            mask = np.array([np.any(i[dim][0]==e) for i in self.edges])
+            hist_1d.append(np.sum(self.h[mask]))
+            if self.use_w2:
+                w2_1d.append(np.sum(self.w2[mask]))
 
-    if self.use_w2:
-        err = np.sqrt(self.w2)
+        n = np.array(hist_1d)
+        if self.use_w2:
+            err = np.sqrt(w2_1d)
+        else:
+            err = np.sqrt(n)
+
+        m = mid(edges)
+        print 'n', n.shape, n
+        print 'm', m.shape, m
+        print 'err', err.shape, err
+
     else:
-        err = np.sqrt(self.h)
+        edges = self.edges
+        m = mid(edges)
 
-    n = np.copy(self.h)
+        n = np.copy(self.h)
+        if self.use_w2:
+            err = np.sqrt(self.w2)
+        else:
+            err = np.sqrt(self.h)
+
+
     dataint = (n * np.diff(self.edges)).sum()
     scale = dataint if not self.extended else 1.0
 
     arg = parse_arg(self.f, arg, 1) if isinstance(arg, dict) else arg
     yf = vector_apply(self.f, m, *arg)
-    yf *= (scale * np.diff(self.edges) if self.extended else scale)
+    yf *= (scale * np.diff(edges) if self.extended else scale)
     n = n - yf
     if norm:
         sel = err > 0
+        print 'sel', sel.shape, sel
         n[sel] /= err[sel]
         err = np.ones(len(err))
 
     ax.errorbar(m, n, err, fmt='.')
 
-    ax.plot([self.edges[0], self.edges[-1]], [0., 0.], 'r-')
+    ax.plot([edges[0], edges[-1]], [0., 0.], 'r-')
 
     ax.grid(grid)
 
